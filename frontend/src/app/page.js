@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Package2 } from "lucide-react"
-import BgImage from '@/assets/sea-link-2.jpg';
+import BgImage from '@/assets/Money.jpg';
 
 export default function Home() {
   return (

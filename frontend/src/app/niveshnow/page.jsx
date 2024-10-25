@@ -1,227 +1,217 @@
-"use client";
-import Link from "next/link";
-import { CircleUser } from "lucide-react";
-import { Button } from "@/components/ui/button";
+"use client"; // Add this line at the top of your file
+
+import React, { useRef } from 'react'; // Make sure to import useRef if you're using it
+import { Line } from 'react-chartjs-2';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ModeToggle } from "@/components/ModeToggle";
-import { useState } from "react";
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bell, ChevronDown, Download, Settings, HelpCircle, BarChart2, Briefcase, DollarSign, PieChart, RefreshCcw } from 'lucide-react';
 
-export default function Schedula() {
-  const [file1, setFile1] = useState(null);
-  const [file2, setFile2] = useState(null);
-  const [schedule, setSchedule] = useState(null);
-  const [conflicts, setConflicts] = useState(null);
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+// Registering Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-  // Handle file uploads
-  const handleFileUpload = (event) => {
-    const uploadedFile = event.target.files?.[0];
-    if (event.target.id === "file-upload1") {
-      setFile1(uploadedFile);
-    } else {
-      setFile2(uploadedFile);
-    }
-    console.log("File uploaded:", uploadedFile); // Log file upload
-  };
+// Your component logic remains the same
 
-  // Helper function for downloading templates
-  const downloadTemplate = (content, filename) => {
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+const data = [
+  { name: 'May 23', value: 200000 },
+  { name: 'Jun 23', value: 300000 },
+  { name: 'Jul 23', value: 200000 },
+  { name: 'Aug 23', value: 278000 },
+  { name: 'Sep 23', value: 189000 },
+  { name: 'Oct 23', value: 239000 },
+  { name: 'Nov 23', value: 349000 },
+  { name: 'Dec 23', value: 278000 },
+  { name: 'Jan 24', value: 425290 },
+];
 
-  // File download templates
-  const handleDownloadFormat1 = () => {
-    const formatContent1 = `rooms\n101 : 25\n115 : 50\n200 : 250 ;\ncourses\ncs101, cs102, cs110, cs120, cs220, cs412, cs430, cs612, cs630 ;\ntimes\nMWF9, MWF10, MWF11, MWF2, TT9, TT10:30, TT2, TT3:30 ;`;
-    downloadTemplate(formatContent1, "schedule_format.txt");
-  };
-
-  const handleDownloadFormat2 = () => {
-    const formatContent2 = `course   enrollment   preferences\ncs101    180          MWF9, MWF10, MWF11, TT9\ncs412    80           MWF9, TT9, TT10:30\ncs612    35\ncs630    40\n`;
-    downloadTemplate(formatContent2, "schedule_format_file2.txt");
-  };
-
-  // Handle form submit with file uploads
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true); // Show loading spinner
-    const formData = new FormData();
-    if (file1) formData.append("file1", file1);
-    if (file2) formData.append("file2", file2);
-
-    try {
-      const response = await fetch("http://localhost:5000/read_files", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Something went wrong on the server.");
-      }
-
-      const result = await response.json();
-
-      if (result.schedule) {
-        setSchedule(result.schedule); // Update with schedule data
-        setConflicts(null); // Clear conflicts
-      } else if (result.conflicts) {
-        setConflicts(result.conflicts); // Update with conflicts
-        setSchedule(null); // Clear schedule
-      }
-
-      setError(null); // Clear errors after success
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setError("Error submitting form: " + error.message);
-      setSchedule(null); // Clear schedule on error
-      setConflicts(null); // Clear conflicts on error
-    } finally {
-      setIsLoading(false); // Hide loading spinner
-    }
-  };
-
+function Dashboard() {
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <div className="flex absolute top-0 left-0 z-10 m-4 text-White text-4xl font-bold">
-            NiveshNow
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 bg-gray-800 p-4 h-screen sticky top-0 overflow-y-auto">
+          <h1 className="text-2xl font-bold mb-8">Niveshnow</h1>
+          <nav>
+            <ul className="space-y-2">
+              <li>
+                <a href="#" className="flex items-center space-x-2 p-2 bg-gray-700 rounded">
+                  <BarChart2 className="w-5 h-5" /> 
+                  <span>Dashboard</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded">
+                  <Briefcase className="w-5 h-5" /> 
+                  <span>Portfolio</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded">
+                  <DollarSign className="w-5 h-5" /> 
+                  <span>My Stock</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded">
+                  <PieChart className="w-5 h-5" /> 
+                  <span>Market Stock</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded">
+                  <RefreshCcw className="w-5 h-5" /> 
+                  <span>News Update</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 p-8 overflow-y-auto">
+          <header className="flex justify-between items-center mb-8 sticky top-0 bg-gray-900 z-10 py-4">
+            <div className="flex items-center space-x-4">
+              <input type="text" placeholder="Search now..." className="bg-gray-800 px-4 py-2 rounded-lg" />
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="p-2 bg-gray-800 rounded-full"><Bell className="w-5 h-5" /></button>
+              <div className="flex items-center space-x-2">
+                <img src="/placeholder.svg" alt="User" className="w-8 h-8 rounded-full" />
+                <span>Vincentius R</span>
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </header>
+
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Dashboard</h2>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                <Download className="w-5 h-5" />
+                <span>Export Report</span>
+              </button>
+            </div>
+            <p className="text-gray-400">Overview of notes regarding your investment</p>
           </div>
-        </nav>
-        <div className="flex w-full items-end justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <ModeToggle />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <Link href="/">
-                <Button className="w-full">Logout</Button>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
 
-      <main className="flex min-h-[80vh] flex-1 flex-row gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        {/* File 1 Upload Section */}
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">File 1 Upload</CardTitle>
-            <CardDescription>Rooms, Courses, and Timing</CardDescription>
-          </CardHeader>
-
-          <CardFooter className="flex flex-col items-start space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">File Format:</h3>
-              <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                {`rooms\n101 : 25\n115 : 50\n200 : 250 ;\ncourses\ncs101, cs102, cs110, cs120, cs220, cs412, cs430, cs612, cs630 ;\ntimes\nMWF9, MWF10, MWF11, MWF2, TT9, TT10:30, TT2, TT3:30 ;`}
-              </pre>
-            </div>
-            <Button variant="outline" onClick={handleDownloadFormat1}>
-              Download Format Template
-            </Button>
-          </CardFooter>
-
-          <CardContent>
-            <form className="space-y-4">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="file-upload1">Upload File</Label>
-                <Input id="file-upload1" type="file" onChange={handleFileUpload} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-lg mb-2">Portfolio Value</h3>
+              <div className="text-3xl font-bold mb-2">$475,432.98</div>
+              <div className="text-green-500">+6.2%</div>
+              <div style={{ height: '200px' }}>
+                <Line
+                  data={{
+                    labels: data.map(d => d.name),
+                    datasets: [
+                      {
+                        label: 'Portfolio Value',
+                        data: data.map(d => d.value),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                      },
+                      x: {
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                      },
+                    },
+                    plugins: {
+                      legend: {
+                        labels: { color: 'white' },
+                      },
+                    },
+                  }}
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* File 2 Upload Section */}
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">File 2 Upload</CardTitle>
-            <CardDescription>Course Details and Preferences</CardDescription>
-          </CardHeader>
-
-          <CardFooter className="flex flex-col items-start space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">File Format:</h3>
-              <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                {`course   enrollment   preferences\ncs101    180          MWF9, MWF10, MWF11, TT9\ncs412    80           MWF9, TT9, TT10:30\ncs612    35\ncs630    40`}
-              </pre>
             </div>
-            <Button variant="outline" onClick={handleDownloadFormat2}>
-              Download Format Template
-            </Button>
-          </CardFooter>
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-lg mb-4">Watchlist</h3>
+              <ul className="space-y-4">
+                <li className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <img src="/placeholder.svg" alt="Stock" className="w-8 h-8 rounded-full" />
+                    <span>AAPL</span>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">$193.36</div>
+                    <div className="text-green-500">+0.76%</div>
+                  </div>
+                </li>
+                <li className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <img src="/placeholder.svg" alt="Stock" className="w-8 h-8 rounded-full" />
+                    <span>TWTR</span>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">$53.70</div>
+                    <div className="text-red-500">-0.54%</div>
+                  </div>
+                </li>
+                <li className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <img src="/placeholder.svg" alt="Stock" className="w-8 h-8 rounded-full" />
+                    <span>BMW</span>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">$110.19</div>
+                    <div className="text-green-500">+1.09%</div>
+                  </div>
+                </li>
+                <li className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <img src="/placeholder.svg" alt="Stock" className="w-8 h-8 rounded-full" />
+                    <span>NYSE</span>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">$108.49</div>
+                    <div className="text-green-500">+11.83%</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
 
-          <CardContent>
-            <form className="space-y-4">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="file-upload2">Upload File</Label>
-                <Input id="file-upload2" type="file" onChange={handleFileUpload} />
+          <div className="bg-gray-800 p-6 rounded-lg mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg">Stock Sectors</h3>
+              <div className="flex space-x-2">
+                <button className="bg-gray-700 p-2 rounded-lg">Filter</button>
+                <button className="bg-gray-700 p-2 rounded-lg">Sort</button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      </main>
-
-      {/* Submit Button for Both Files */}
-      <div className="flex justify-center">
-        <Button onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? "Submitting..." : "Submit Files"}
-        </Button>
+            </div>
+            <p className="text-gray-400">Sector performance based on your portfolio.</p>
+            {/* Chart component can be added here */}
+          </div>
+        </main>
       </div>
-
-      {/* Error Message */}
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      {/* Schedule Display */}
-      {schedule && (
-        <div className="mt-6 p-4 bg-green-100">
-          <h3 className="text-lg font-semibold">Generated Schedule:</h3>
-          <pre className="whitespace-pre-wrap">{JSON.stringify(schedule, null, 2)}</pre>
-        </div>
-      )}
-
-      {/* Conflict Display */}
-      {conflicts && (
-        <div className="mt-6 p-4 bg-red-100">
-          <h3 className="text-lg font-semibold">Conflicts Detected:</h3>
-          <pre className="whitespace-pre-wrap">{JSON.stringify(conflicts, null, 2)}</pre>
-        </div>
-      )}
     </div>
   );
 }
+
+export default Dashboard;
