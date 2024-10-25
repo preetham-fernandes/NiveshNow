@@ -111,7 +111,7 @@ export default function Schedula() {
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <div className="flex absolute top-0 left-0 z-10 m-4 text-White text-4xl font-bold">
-            Schedula
+            NiveshNow
           </div>
         </nav>
         <div className="flex w-full items-end justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">

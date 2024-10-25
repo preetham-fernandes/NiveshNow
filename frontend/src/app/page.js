@@ -14,7 +14,7 @@ export default function Home() {
         <div className="relative hidden bg-muted lg:block">
           {/* Floating SCHEDULA text */}
           <div className=" flex absolute top-0 left-0 z-10 m-4 text-black text-4xl font-bold">
-            Schedula
+            NiveshNow
           </div>
           <Image
             src={BgImage}
@@ -57,7 +57,7 @@ export default function Home() {
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Link href="/schedula">
+              <Link href="/niveshnow">
                 <Button className="w-full">
                   Login
                 </Button>
