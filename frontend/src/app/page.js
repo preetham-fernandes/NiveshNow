@@ -21,7 +21,6 @@ export default function Home() {
     <div className="flex-col">
       <div className="h-[100vh] w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
         <div className="relative hidden bg-muted lg:block">
-          {/* Floating SCHEDULA text */}
           <div className="flex absolute top-0 left-0 z-10 m-4 text-black text-4xl font-bold">
             NiveshNow
           </div>
