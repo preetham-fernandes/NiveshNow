@@ -2,9 +2,41 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import yfinance as yf
 import numpy as np
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/api/trending-news', methods=['GET'])
+def get_trending_news():
+    url = 'https://finance.yahoo.com/markets/stocks/trending/'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        trending_topics = []
+
+        # Find table rows containing the trending data
+        rows = soup.find_all('tr')[1:]  # Skip the header row
+        for row in rows:
+            columns = row.find_all('td')
+            if len(columns) >= 4:  # Ensure there are at least 4 columns
+                ticker = columns[0].text.strip()
+                name = columns[1].text.strip()
+                price = columns[2].text.strip()
+                change = columns[3].text.strip()
+
+                trending_topics.append({
+                    'ticker': ticker,
+                    'name': name,
+                    'price': price,
+                    'change': change
+                })
+        return jsonify(trending_topics)
+    else:
+        return jsonify({'error': 'Unable to fetch trending news'}), 500
+
 
 @app.route('/api/ranked-recom', methods=['POST'])
 def get_ranked_recommendations():

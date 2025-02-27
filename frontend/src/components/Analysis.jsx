@@ -1,20 +1,13 @@
+'use client'
+
 import { useState } from 'react'
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-} from 'chart.js'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 const RecommendationMeter = ({ score }) => {
   const percentage = score * 100
@@ -52,68 +45,38 @@ export default function RecommendationForm() {
   const [riskFreeRate, setRiskFreeRate] = useState(0.02)
   const [marketReturn, setMarketReturn] = useState(0.07)
   const [recommendations, setRecommendations] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
-    const response = await fetch('/api/recommendation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tickers: tickers.split(',').map((t) => t.trim()),
-        risk_free_rate: parseFloat(riskFreeRate),
-        market_return: parseFloat(marketReturn),
-      }),
-    })
+    try {
+      const response = await fetch('/api/recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tickers: tickers.split(',').map((t) => t.trim()),
+          risk_free_rate: parseFloat(riskFreeRate),
+          market_return: parseFloat(marketReturn),
+        }),
+      })
 
-    const data = await response.json()
-    setRecommendations(data)
+      const data = await response.json()
+      setRecommendations(data)
+    } catch (error) {
+      console.error('Error fetching recommendations:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const prepareBarChartData = (value, label, color) => ({
-    labels: [label],
-    datasets: [
-      {
-        label: label,
-        data: [value],
-        backgroundColor: color,
-        borderColor: color,
-        borderWidth: 1,
-      },
-    ],
-  })
-
-  const chartOptions = (label, min, max) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        min: min,
-        max: max,
-        beginAtZero: false,
-        ticks: {
-          callback: function (value) {
-            return value.toFixed(2)
-          },
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            return `${label}: ${context.raw.toFixed(4)}`
-          },
-        },
-      },
-    },
-  })
+  const prepareChartData = (value, label) => [
+    { name: label, value: value }
+  ]
 
   return (
-    <div className="min-h-screen w-full p-6 flex justify-center items-start bg-gray-50">
+    <div className="min-h-screen w-full p-6 flex justify-center items-start bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-6xl mx-auto p-8 shadow-lg">
         <CardHeader>
           <CardTitle className="text-3xl">Stock Recommendation</CardTitle>
@@ -157,18 +120,20 @@ export default function RecommendationForm() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full">Get Recommendation</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Getting Recommendations...' : 'Get Recommendation'}
+            </Button>
           </form>
           {recommendations && (
             <div className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Recommendations</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {recommendations.map((r) => (
-                  <Card key={r.ticker}>
-                    <CardHeader>
+                  <Card key={r.ticker} className="overflow-hidden">
+                    <CardHeader className="bg-primary/10">
                       <CardTitle>{r.ticker}</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-6">
                       <Tabs defaultValue="charts" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                           <TabsTrigger value="charts">Charts</TabsTrigger>
@@ -176,22 +141,42 @@ export default function RecommendationForm() {
                         </TabsList>
                         <TabsContent value="charts">
                           <div className="grid grid-cols-1 gap-4 mb-4">
-                            <div className="flex flex-col items-center">
-                              <div className="h-48 w-full">
-                                <Bar 
-                                  data={prepareBarChartData(r.capm_return, 'CAPM Return', 'hsl(var(--primary))')} 
-                                  options={chartOptions('CAPM Return', -5, 25)} 
-                                />
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <div className="h-48 w-full">
-                                <Bar 
-                                  data={prepareBarChartData(r.sharpe_ratio, 'Sharpe Ratio', 'hsl(var(--secondary))')} 
-                                  options={chartOptions('Sharpe Ratio', -1, 4)} 
-                                />
-                              </div>
-                            </div>
+                            <ChartContainer
+                              config={{
+                                capm: {
+                                  label: "CAPM Return",
+                                  color: "hsl(var(--primary))",
+                                },
+                              }}
+                              className="h-48"
+                            >
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={prepareChartData(r.capm_return, 'CAPM Return')}>
+                                  <XAxis dataKey="name" />
+                                  <YAxis domain={[-5, 25]} tickFormatter={(value) => `${value}%`} />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Bar dataKey="value" fill="var(--color-capm)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </ChartContainer>
+                            <ChartContainer
+                              config={{
+                                sharpe: {
+                                  label: "Sharpe Ratio",
+                                  color: "hsl(var(--secondary))",
+                                },
+                              }}
+                              className="h-48"
+                            >
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={prepareChartData(r.sharpe_ratio, 'Sharpe Ratio')}>
+                                  <XAxis dataKey="name" />
+                                  <YAxis domain={[-1, 4]} />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Bar dataKey="value" fill="var(--color-sharpe)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </ChartContainer>
                           </div>
                         </TabsContent>
                         <TabsContent value="details">
