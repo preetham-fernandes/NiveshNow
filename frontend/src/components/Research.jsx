@@ -24,7 +24,7 @@ export default function Research() {
     setError(null)
     try {
       const response = await axios.get(
-        `https://cors-anywhere.herokuapp.com/https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${period}&interval=1d`
+        `http://localhost:8080/https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${period}&interval=1d`
       )
 
       const result = response.data.chart.result[0]

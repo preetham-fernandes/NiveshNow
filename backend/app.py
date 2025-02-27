@@ -11,17 +11,32 @@ CORS(app)
 @app.route('/api/trending-news', methods=['GET'])
 def get_trending_news():
     url = 'https://finance.yahoo.com/markets/stocks/trending/'
-    response = requests.get(url)
     
-    if response.status_code == 200:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return jsonify({'error': f'Failed to fetch page, status code: {response.status_code}'}), 500
+
         soup = BeautifulSoup(response.text, 'html.parser')
+
+        # DEBUG: Print first 1000 characters of page content
+        print("HTML Response:", soup.prettify()[:1000])
+
         trending_topics = []
 
-        # Find table rows containing the trending data
-        rows = soup.find_all('tr')[1:]  # Skip the header row
-        for row in rows:
+        # Find table rows
+        rows = soup.find_all('tr')
+        if not rows:
+            return jsonify({'error': 'No trending stocks found. Check page structure.'}), 500
+
+        for row in rows[1:]:  # Skip header row
             columns = row.find_all('td')
-            if len(columns) >= 4:  # Ensure there are at least 4 columns
+            if len(columns) >= 4:
                 ticker = columns[0].text.strip()
                 name = columns[1].text.strip()
                 price = columns[2].text.strip()
@@ -33,9 +48,11 @@ def get_trending_news():
                     'price': price,
                     'change': change
                 })
+
         return jsonify(trending_topics)
-    else:
-        return jsonify({'error': 'Unable to fetch trending news'}), 500
+
+    except Exception as e:
+        return jsonify({'error': f'Exception occurred: {str(e)}'}), 500
 
 
 @app.route('/api/ranked-recom', methods=['POST'])
@@ -133,6 +150,8 @@ def get_recommendation():
         return jsonify(recommendations), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

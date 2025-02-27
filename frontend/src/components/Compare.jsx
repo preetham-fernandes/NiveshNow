@@ -43,7 +43,7 @@ export default function Compare() {
 
   const fetchStockData = async (ticker, setData, setSummary) => {
     try {
-      const response = await axios.get(`https://cors-anywhere.herokuapp.com/https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${period}&interval=1d`)
+      const response = await axios.get(`http://localhost:8080/https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${period}&interval=1d`)
       const chartData = response.data.chart.result[0]
 
       if (!chartData || !chartData.indicators || !chartData.indicators.quote[0]) {
