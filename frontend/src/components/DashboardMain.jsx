@@ -10,8 +10,8 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const DashboardMain = () => {
   // Mock data for demonstration
-  const totalInvestment = 500000
-  const expectedPortfolio = 650000
+  const totalInvestment = 50000
+  const expectedPortfolio = 65000
   const period = 5
   const roi = 30
 

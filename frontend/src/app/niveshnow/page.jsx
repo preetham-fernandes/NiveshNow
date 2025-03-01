@@ -8,7 +8,7 @@ import Recommendation from '@/components/Research'
 import TrendingStocks from '@/components/TrendingStocks'
 import Analysis from '@/components/Analysis'
 import News from '@/components/News'
-import InvestmentBaskets from '@/components/InvestmentBaskets'
+import Calculators from '@/components/Calculators'
 import Professionals from '@/components/Professionals'
 import PortfolioCustomization from '@/components/PortfolioCustomization'
 import DashboardMain from '@/components/DashboardMain'
@@ -23,7 +23,7 @@ const features = [
   { name: 'Analyse', icon: BarChart3, component: Analysis },
   { name: 'Compare', icon: Users, component: Compare },
   { name: 'News', icon: Newspaper, component: News },
-  { name: 'Calculators', icon: Briefcase, component: InvestmentBaskets },
+  { name: 'Calculators', icon: Briefcase, component: Calculators },
   { name: 'Professionals', icon: Users, component: Professionals },
   { name: 'Portfolio Customization', icon: Sliders, component: PortfolioCustomization },
 ]
