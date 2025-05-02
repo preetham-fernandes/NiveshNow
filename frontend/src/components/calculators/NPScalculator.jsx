@@ -174,6 +174,7 @@ const NPSCalculator = () => {
                 </div>
             </div>
             <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 mx-auto my-4">
+                
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 border-b pb-2">
                     What is NPS?
                 </h1>
